@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="supabase.js"></script>
+<style>
+body { font-family: 'Poppins', sans-serif; background:#f4f7f9; padding:20px;}
+h2 { text-align:center; margin-bottom:20px;}
+form { max-width: 500px; margin:auto; background:#fff; padding:20px; border-radius:10px; box-shadow:0 4px 15px rgba(0,0,0,0.1);}
+form input, form textarea { margin-bottom:15px; width:100%; padding:10px; border-radius:5px; border:1px solid #ddd;}
+form button { background: linear-gradient(45deg, #6a82fb, #fc5c7d); color:#fff; padding:12px; width:100%; border:none; border-radius:5px; cursor:pointer;}
+#logoutBtn { margin:20px auto; display:block; background:#e74c3c; color:#fff; padding:10px; border:none; border-radius:5px; cursor:pointer;}
+.product-table { max-width:800px; margin:30px auto; width:100%; border-collapse:collapse;}
+.product-table th, .product-table td { border:1px solid #ddd; padding:12px; text-align:center;}
+.product-table th { background:#6a82fb; color:white; }
+.edit-btn, .delete-btn { padding:5px 10px; border:none; border-radius:5px; cursor:pointer; font-weight:600;}
+.edit-btn { background:#f1c40f; color:white; }
+.delete-btn { background:#e74c3c; color:white; }
+</style>
+</head>
+<body>
+
+<h2>Admin Panel - Manage Produk</h2>
+
+<form id="productForm">
+    <input type="hidden" id="productId">
+    <input type="text" id="name" placeholder="Nama Produk" required>
+    <input type="number" id="price" placeholder="Harga Produk" required>
+    <input type="text" id="image" placeholder="URL Gambar" required>
+    <button type="submit">Tambah / Update Produk</button>
+</form>
+
+<button id="logoutBtn">Logout</button>
+
+<table class="product-table" id="productTable">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nama</th>
+            <th>Harga</th>
+            <th>Gambar</th>
+            <th>Aksi</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script>
+// Proteksi halaman
+if(localStorage.getItem('adminLoggedIn') !== 'true'){
+    window.location.href = 'login.html';
+}
+
+// Logout
+document.getElementById('logoutBtn').addEventListener('click', ()=>{
+    localStorage.removeItem('adminLoggedIn');
+    window.location.href = 'login.html';
+});
+
+const productForm = document.getElementById('productForm');
+const productTableBody = document.querySelector('#productTable tbody');
+
+// Load semua produk
+async function loadProducts(){
+    const { data: products } = await supabase.from('products').select('*').order('id', {ascending:false});
+    productTableBody.innerHTML = '';
+    products.forEach(p=>{
+        productTableBody.innerHTML += `
+        <tr>
+            <td>${p.id}</td>
+            <td>${p.name}</td>
+            <td>Rp ${p.price}</td>
+            <td><img src="${p.image}" width="80"></td>
+            <td>
+                <button class="edit-btn" onclick="editProduct(${p.id},'${p.name}',${p.price},'${p.image}')">Edit</button>
+                <button class="delete-btn" onclick="deleteProduct(${p.id})">Hapus</button>
+            </td>
+        </tr>`;
+    });
+}
+
+// Tambah / Update produk
+productForm.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const id = document.getElementById('productId').value;
+    const name = document.getElementById('name').value;
+    const price = document.getElementById('price').value;
+    const image = document.getElementById('image').value;
+
+    if(id){ // Update
+        const { error } = await supabase.from('products').update({name, price, image}).eq('id', id);
+        if(error) alert('Error update: '+error.message);
+        else alert('Produk berhasil diperbarui!');
+    } else { // Insert baru
+        const { error } = await supabase.from('products').insert([{name, price, image}]);
+        if(error) alert('Error tambah: '+error.message);
+        else alert('Produk berhasil ditambahkan!');
+    }
+    productForm.reset();
+});
+
+// Edit produk
+function editProduct(id, name, price, image){
+    document.getElementById('productId').value = id;
+    document.getElementById('name').value = name;
+    document.getElementById('price').value = price;
+    document.getElementById('image').value = image;
+}
+
+// Hapus produk
+async function deleteProduct(id){
+    if(confirm('Yakin ingin menghapus produk ini?')){
+        const { error } = await supabase.from('products').delete().eq('id', id);
+        if(error) alert('Error hapus: '+error.message);
+        else alert('Produk berhasil dihapus!');
+    }
+}
+
+// Realtime subscription
+supabase.from('products').on('*', payload=>{
+    loadProducts();
+}).subscribe();
+
+loadProducts();
+</script>
+
+</body>
+</html>

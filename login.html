@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login Page</title>
+<link rel="stylesheet" href="style.css">
+<script>
+const validPasswords = ["Rap","Ganteng","apalu"];
+function login(e){
+    e.preventDefault();
+    const pw = document.getElementById('password').value;
+    if(validPasswords.includes(pw)){
+        localStorage.setItem('adminLoggedIn','true');
+        window.location.href='admin.html';
+    } else {
+        alert('Password salah!');
+    }
+}
+</script>
+</head>
+<body>
+<div class="login-container">
+    <div class="login-form">
+        <h2>Selamat Datang!</h2>
+        <form onsubmit="login(event)">
+            <input type="password" id="password" placeholder="Masukkan Password" required>
+            <button type="submit" class="login-button">Login</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

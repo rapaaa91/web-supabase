@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daftar Produk</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="supabase.js"></script>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Daftar Produk</h1>
+        <div class="search-box">
+            <input type="text" id="search" placeholder="Cari produk...">
+            <button><i class="fas fa-search"></i></button>
+        </div>
+    </div>
+    <div class="product-grid" id="productGrid"></div>
+</div>
+
+<script>
+const productGrid = document.getElementById('productGrid');
+const searchInput = document.getElementById('search');
+
+async function loadProducts(){
+    const { data: products } = await supabase.from('products').select('*').order('id', {ascending:false});
+    displayProducts(products);
+}
+
+// Tampilkan produk sesuai search
+function displayProducts(products){
+    const query = searchInput.value.toLowerCase();
+    productGrid.innerHTML = '';
+    products.filter(p=>p.name.toLowerCase().includes(query))
+    .forEach(p=>{
+        productGrid.innerHTML += `
+        <div class="product-card">
+            <img src="${p.image}" alt="${p.name}">
+            <div class="product-info">
+                <h3>${p.name}</h3>
+                <div class="price">Rp ${p.price}</div>
+                <button class="add-to-cart-btn">Tambah ke Keranjang</button>
+            </div>
+        </div>`;
+    });
+}
+
+// Realtime update
+supabase.from('products').on('*',()=>loadProducts()).subscribe();
+
+searchInput.addEventListener('input', ()=>loadProducts());
+loadProducts();
+</script>
+</body>
+</html>
