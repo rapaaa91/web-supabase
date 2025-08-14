@@ -1,0 +1,19 @@
+{
+  "name": "supabase-vercel-store",
+  "version": "1.0.0",
+  "description": "Toko online realtime dengan Supabase di Vercel",
+  "main": "index.js",
+  "scripts": {
+    "start": "serve public",
+    "dev": "serve public",
+    "vercel-build": "echo 'Build step not needed for static HTML project'"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.7",
+    "serve": "^14.2.0"
+  },
+  "devDependencies": {},
+  "keywords": [],
+  "author": "",
+  "license": "MIT"
+}
